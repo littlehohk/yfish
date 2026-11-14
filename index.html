@@ -3,6 +3,39 @@
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#081f31;color:#e7f7ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at top,#15455a,#071521 75%);display:flex;flex-direction:column;align-items:center;padding:12px 10px max(16px,env(safe-area-inset-bottom));gap:10px}.top{width:min(100%,840px);display:flex;align-items:center;justify-content:space-between;gap:12px}.top strong{font-size:18px}.top small{display:block;color:#a5c4d0;margin-top:3px}.top button,.buttons button,button{background:#174b60;border:1px solid #49849b;border-radius:9px;color:#e9faff;padding:9px 12px;font:inherit;cursor:pointer}.top button:active,button:active{background:#2d748b}.frame{width:min(100%,840px);background:#000;border:5px solid #16394c;border-radius:12px;box-shadow:0 12px 32px #0008;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;image-rendering:auto;touch-action:none}.tip{width:min(100%,840px);color:#b3cfdb;font-size:13px;line-height:1.5}.buttons{width:min(100%,840px);display:flex;gap:8px;flex-wrap:wrap}.buttons button{flex:1;min-width:100px;font-size:13px}.notice{font-size:12px;color:#8fc2cf;text-align:center}.overlay{position:fixed;inset:0;background:#00121dd9;z-index:5;display:none;align-items:center;justify-content:center;padding:18px}.overlay.show{display:flex}.sheet{width:min(100%,580px);max-height:min(85dvh,820px);overflow:auto;background:#103447;border:1px solid #4b8396;border-radius:17px;padding:18px;box-shadow:0 15px 60px #000a}.sheet h2{margin:0 0 12px;font-size:23px}.sheet h3{margin:19px 0 7px;font-size:17px}.sheet p,.sheet li{font-size:14px;line-height:1.55;color:#d3e8f0}.sheet .tabs{display:flex;gap:7px;margin-bottom:12px}.tabs button{flex:1}.sheet .tabs button.active{background:#2c788c}.sheet label{display:block;font-size:14px;margin:12px 0 5px}.sheet input{width:100%;font-size:16px;padding:10px;border-radius:8px;border:1px solid #6395a8;color:white;background:#072a3c}.sheet input[type=checkbox]{width:auto}.sheet .actions{display:flex;gap:8px;margin-top:17px;flex-wrap:wrap}.sheet .actions button{flex:1}.sheet button.danger{background:#713338;border-color:#c66e6e}.sheet .sub{font-size:12px;color:#aac6d0}.hidden{display:none!important}.results{display:grid;gap:6px;margin:9px 0}.results button{text-align:left}.chips{display:flex;flex-wrap:wrap;gap:7px}.chips button.active{background:#287a92;border-color:#8ce6ff}.warn{color:#ffda8c!important}
 .language-tools{display:flex;gap:6px}.language-tools button{white-space:nowrap}.top{gap:6px}@media(max-width:380px){.language-tools button{font-size:12px;padding:7px 8px}.top strong{font-size:15px}}
+
+/* iPhone landscape: reserve the entire visible height for the 4:3 tank,
+   including its status and bottom control strip. No vertical cropping. */
+@media (orientation:landscape) and (max-height:600px) {
+  html,body {width:100%;height:var(--aquarium-vh,100dvh);min-height:0;overflow:hidden}
+  body {
+    box-sizing:border-box;
+    height:var(--aquarium-vh,100dvh);
+    min-height:0;
+    padding: max(2px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(2px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+    gap:3px;
+    justify-content:center;
+  }
+  .top {width:min(100%,840px);flex:0 0 auto;min-height:28px;max-height:38px}
+  .top strong {font-size:14px}
+  .top small {display:none}
+  .top button {padding:5px 9px;font-size:12px}
+  .frame {
+    flex:0 1 auto;
+    width:min(calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)),calc((var(--aquarium-vh,100dvh) - 60px) * 4 / 3 + 10px));
+    max-height:calc(var(--aquarium-vh,100dvh) - 52px);
+    aspect-ratio:4 / 3;
+    height:auto;
+    border-width:3px;
+    border-radius:7px;
+    margin-inline:auto;
+  }
+  .frame canvas {display:block;width:100%;height:100%;aspect-ratio:4 / 3}
+  .tip,.buttons,.notice {display:none}
+  .overlay {padding:6px max(10px,env(safe-area-inset-right)) 6px max(10px,env(safe-area-inset-left));}
+  .sheet {max-height:calc(var(--aquarium-vh,100dvh) - 12px);}
+}
+
 </style></head><body>
 <div class="top"><div><strong>CYD Aquarium</strong><small>Browser edition · faithful care rules</small></div><div class="language-tools"><button id="languageBtn" type="button">繁體中文</button><button id="settingsBtn">⚙ Settings</button></div></div>
 <div class="frame"><canvas id="tank" width="640" height="480" aria-label="Interactive virtual aquarium. Tap to feed, swipe to play."></canvas></div>
@@ -16,6 +49,16 @@
 </div><div id="howPanel" class="hidden"><h3>How to take care of your fish</h3><ol><li><strong>Feeding:</strong> Tap the water to drop one pellet. Eating reduces hunger by 0.1. After seven days, the golden minnow becomes a golden sea snake, fed with small living minnows instead.</li><li><strong>Playing:</strong> Swipe within the tank or toggle the lamp to reduce boredom by 0.1. The fish darts away when touched.</li><li><strong>Temperature:</strong> Use AirCon or Heater to keep the water safe. Each control can be switched off by tapping it again.</li></ol><h3>Exact survival rules</h3><ul><li>Both hunger and boredom start at 2.5 and rise 0.1 every 20 minutes.</li><li>Hunger below 0.2 for one continuous hour: gluttony death. Hunger above 4.7 for one continuous hour: starvation death.</li><li>Boredom below 0.2: immediate overexcitement death. Boredom above 4.7: immediate boredom death.</li><li>Water below 14°C continuously for 30 minutes: hypothermia. Above 28°C continuously for 30 minutes: hyperthermia.</li><li>AirCon cools 1°C per 30 minutes. Heater warms 1.5°C per 30 minutes. With controls off, water returns toward its natural target by 0.2°C per 5 minutes.</li><li>Food released behind the fish cannot be noticed for three seconds. Unconsumed food sinks and disappears.</li><li>After death, press and hold the NEW FISH strip for two seconds to start again.</li></ul></div><div class="actions"><button id="closeSettings">Done — return to aquarium</button></div></div></div>
 <script>
 (()=>{'use strict';
+
+function fitAquariumToViewport(){
+  const height=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  if(Number.isFinite(height)&&height>0)document.documentElement.style.setProperty('--aquarium-vh',height+'px');
+}
+fitAquariumToViewport();
+window.addEventListener('resize',fitAquariumToViewport,{passive:true});
+window.addEventListener('orientationchange',fitAquariumToViewport,{passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',fitAquariumToViewport,{passive:true});
+
 const W=320,H=240,WT=28,CT=220,FLOOR=215,TOP=43,BOT=203;const canvas=document.getElementById('tank'),ctx=canvas.getContext('2d');ctx.scale(2,2);const $=id=>document.getElementById(id);const key='cyd-aquarium-browser-v1';const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));const rand=(a,b)=>a+Math.random()*(b-a);const HR=.1/1200,BR=.1/1200,RR=.2/300,SEVEN=604800;
 const deathNames={gluttony:'Die of Gluttony',hunger:'Die of Hunger',overexcited:'It Jumps Out of Water because of Overexcitement',boredom:'It Jumps Out of Water because of Boredom',cold:'Die of Hypothermia',hot:'Die of hyperthermia'};
 let movingCity=false;let location={name:'Sha Tin, Hong Kong',lat:22.38,lon:114.19,timezone:'Asia/Hong_Kong'},lastSave=0,lastFrame=performance.now(),lastLight=0,food=[],fish={x:160,y:115,tx:190,ty:110,dir:1,wander:0,flee:0,deathAnim:0,transform:0},pointers=new Map(),holding=null,settingsOpen=false,weatherRequest=false;
