@@ -27,7 +27,7 @@ function translate(value) {
   if(language==='en')return v;
   if(v==='Setting')return '設定';
   if(v.startsWith('Aged ') && v.endsWith(' sec')) {
-    const parts=v.match(/\\d+/g);if(parts&&parts.length===4)return '年齡：'+parts[0]+'日 '+parts[1]+'時 '+parts[2]+'分 '+parts[3]+'秒';
+    const parts=v.match(/[0-9]+/g);if(parts&&parts.length===4)return '年齡：'+parts[0]+'日 '+parts[1]+'時 '+parts[2]+'分 '+parts[3]+'秒';
   }
   for(const [english,chinese] of phrases)if(v.includes(english))v=v.split(english).join(chinese);
   return v;
